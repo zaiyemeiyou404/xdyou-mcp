@@ -1,0 +1,22 @@
+{
+  "name": "xdyou-mcp",
+  "version": "1.6.0",
+  "description": "西电校园数据 MCP 服务。同一个服务给 Cursor、Codex、DeepSeek Harness 和拾光使用。",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "xdyou-mcp": "dist/xdyou-mcp.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/xdyou-mcp.js",
+    "test": "npm run build && node --test \"dist/**/*.test.js\""
+  },
+  "dependencies": {
+    "electron": "^43.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "typescript": "^5.7.0"
+  }
+}
