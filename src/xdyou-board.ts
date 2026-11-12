@@ -32,11 +32,12 @@ export interface CampusCard {
   id: string;
   title: string;
   subtitle: string;
-  kind: "schedule" | "stats" | "list" | "note";
+  kind: "schedule" | "stats" | "list" | "note" | "map";
   stats: CampusStat[];
   items: CampusItem[];
   days: CampusDay[];
   empty?: string;
+  embedUrl?: string;
 }
 
 const TITLES: Record<string, string> = {
@@ -59,6 +60,7 @@ const TITLES: Record<string, string> = {
   schoolnet: "校园网账号",
   forum: "睿思",
   library: "图书馆",
+  map: "地图",
   status: "缓存",
   login: "登录",
 };
@@ -85,6 +87,7 @@ export function campusCardFromOutput(id: string, dataset: string, output: Record
   if (dataset === "card") return cardBoard(id, title, output);
   if (dataset === "loans") return loansCard(id, title, output);
   if (dataset === "classrooms") return classroomsCard(id, title, output);
+  if (dataset === "map") return mapCard(id, title, output);
   return genericCard(id, title, output);
 }
 
@@ -159,6 +162,8 @@ export function renderCampusBoardHtml(card: CampusCard): string {
   li.warn strong { color: #9a3412; }
   .note { margin: 14px 0 8px; color: #3f3a34; }
   .card.grid { max-width: 780px; }
+  .card.map { max-width: 920px; }
+  .campus-map { display: block; width: 100%; height: 640px; margin-top: 12px; border: 0; border-radius: 16px; background: #ebebeb; }
   .sheet-head, .sheet-body { display: grid; grid-template-columns: 44px repeat(7, minmax(0,1fr)); }
   .day-head { padding: 0 2px 8px; color: #6f675e; font-size: 13px; font-weight: 700; text-align: center; }
   .day-head.today { color: #1f4e79; }
@@ -173,7 +178,7 @@ export function renderCampusBoardHtml(card: CampusCard): string {
   .course span { display: block; margin-top: 2px; color: #4e4943; font-size: 10px; line-height: 1.2; }
 </style>
 </head>
-<body><article class="card${card.kind === "schedule" ? " grid" : ""}" id="card">${cardBody(card)}</article>
+<body><article class="card${card.kind === "schedule" ? " grid" : card.kind === "map" ? " map" : ""}" id="card">${cardBody(card)}</article>
 <script type="application/json" id="xdyou-card">${payload}</script>
 <script>
 (function () {
@@ -194,7 +199,7 @@ export function renderCampusBoardHtml(card: CampusCard): string {
     top.append(el("h1", "", text(card.title) || "校园"));
     if (card.subtitle && card.kind !== "note") top.append(el("p", "week", text(card.subtitle)));
     head.append(top);
-    root.className = "card" + (card.kind === "schedule" ? " grid" : "");
+    root.className = "card" + (card.kind === "schedule" ? " grid" : card.kind === "map" ? " map" : "");
     root.replaceChildren(head);
     if (card.kind === "note") { root.append(el("p", "note", text(card.subtitle))); size(); return; }
     var stats = Array.isArray(card.stats) ? card.stats : [];
@@ -278,10 +283,21 @@ export function renderCampusBoardHtml(card: CampusCard): string {
     } else if (card.empty) {
       root.append(el("p", "empty", text(card.empty)));
     }
+    var map = mapFrame(card);
+    if (map) root.append(map);
     size();
   }
   function size() {
     host.postMessage({ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: { height: document.body.scrollHeight } }, "*");
+  }
+  function mapFrame(card) {
+    var url = text(card && card.embedUrl);
+    if (url.indexOf("https://gis.xidian.edu.cn/") !== 0) return null;
+    var frame = document.createElement("iframe");
+    frame.className = "campus-map";
+    frame.title = "西电校园地图";
+    frame.src = url;
+    return frame;
   }
   var embedded = document.getElementById("xdyou-card");
   if (embedded) render(JSON.parse(embedded.textContent || "{}"));
@@ -331,7 +347,8 @@ function cardBody(card: CampusCard): string {
     : `<ul class="rows">${card.items.map((item) => `<li class="${item.tone === "warn" ? "warn" : ""}"><div><strong>${esc(item.title)}</strong>${item.meta ? `<span class="meta">${esc(item.meta)}</span>` : ""}${typeof item.meter === "number" ? `<i class="bar"><i style="width:${meterWidth(item.meter, item.tone === "warn")}%"></i></i>` : ""}</div>${item.aside ? `<b class="aside${item.tone === "warn" || item.aside.startsWith("-") ? " minus" : ""}">${esc(item.aside)}</b>` : ""}</li>`).join("")}</ul>`;
   const blank = card.items.length === 0 && card.empty ? `<p class="empty">${esc(card.empty)}</p>` : "";
   const note = card.kind === "note" ? `<p class="note">${esc(card.subtitle)}</p>` : "";
-  return `${header}${heroes}${grid}${stats}${items}${blank}${note}`;
+  const map = campusMapFrame(card);
+  return `${header}${heroes}${grid}${stats}${items}${blank}${note}${map}`;
 }
 
 function timetableHtml(card: CampusCard): string {
@@ -485,6 +502,33 @@ function genericCard(id: string, title: string, output: Record<string, unknown>)
     return [{ title: headingText, meta: text(row.place) || text(row.rate) || text(row.time) || text(row.classroom) || "" }];
   }) : [];
   return { id, title, subtitle: text(output.note) || "", kind: items.length > 0 ? "list" : stats.length > 0 ? "stats" : "note", stats, items, days: [] };
+}
+
+function campusMapFrame(card: CampusCard): string {
+  const url = card.embedUrl ?? "";
+  if (!url.startsWith("https://gis.xidian.edu.cn/")) return "";
+  return `<iframe class="campus-map" title="西电校园地图" src="${esc(url)}"></iframe>`;
+}
+
+function mapCard(id: string, title: string, output: Record<string, unknown>): CampusCard {
+  const places = asRecords(output.places);
+  const campuses = asRecords(output.campuses);
+  const items = places.length > 0
+    ? places.slice(0, 8).map((place) => ({
+      title: text(place.name) || "地点",
+      meta: [text(place.campus), text(place.kind), text(place.address)].filter(Boolean).join(" · "),
+    }))
+    : campuses.map((campus) => ({ title: text(campus.name) || "校区", meta: text(campus.address) }));
+  return {
+    id,
+    title,
+    subtitle: text(output.view) || "官方校园 GIS",
+    kind: "map",
+    stats: [],
+    items,
+    days: [],
+    embedUrl: text(output.url).startsWith("https://gis.xidian.edu.cn/") ? text(output.url) : "https://gis.xidian.edu.cn/",
+  };
 }
 
 function classroomsCard(id: string, title: string, output: Record<string, unknown>): CampusCard {

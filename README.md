@@ -2,7 +2,7 @@
 
 西电校园数据的 MCP 服务。Cursor、Codex、DeepSeek Harness 和拾光接的是同一个进程。
 
-能查课表、成绩、考试、校园卡、借阅、考勤、空教室、图书馆、校园网、体测、体育课、睿思、水电和空调状态。每次结果是一张卡片：正文，加上 MCP App `ui://xdyou/card.html`。认 MCP App 的主机会把课表格子、到课率和余额画出来。DeepSeek Harness 不画 MCP App，仓库里的 `dsh/xdyou-dsh-card` 把同一页嵌进工具行。
+能查课表、成绩、考试、校园卡、借阅、考勤、空教室、校园地图、图书馆、校园网、体测、体育课、睿思、水电和空调状态。每次结果是一张卡片：正文，加上 MCP App `ui://xdyou/card.html`。认 MCP App 的主机会把课表格子、到课率和余额画出来。校园地图嵌的是学校官方三维 GIS，能看楼和已登记地点，公开页面看不到每间教室。DeepSeek Harness 不画 MCP App，仓库里的 `dsh/xdyou-dsh-card` 把同一页嵌进工具行。
 
 登录窗口由人完成验证码、二次验证和短信。服务不保存密码，也不读取 XDYou 的 `shared_preferences`。不会远程开水或开关空调。
 

@@ -5,10 +5,11 @@ import type { ToolExecutionContext } from "./types.js";
 import { queryAirconLive } from "./xdyou-aircon.js";
 import { queryCampusNetwork, searchLibrary } from "./xdyou-live.js";
 import { openXdyouClassrooms, openXdyouLogin, openXdyouSession } from "./xdyou-login.js";
+import { queryCampusMap } from "./xdyou-map.js";
 import { syncedXdyouDataDir } from "./xdyou-paths.js";
 
 const MAX_CACHE_BYTES = 1024 * 1024;
-const DATASETS = ["status", "schedule", "exams", "scores", "electricity", "experiments", "aircon", "airconlive", "library", "network", "login", "classrooms", "card", "loans", "schoolnet", "forum", "sport", "sportclass", "attendance", "meters", "water"] as const;
+const DATASETS = ["status", "schedule", "exams", "scores", "electricity", "experiments", "aircon", "airconlive", "library", "network", "login", "classrooms", "card", "loans", "schoolnet", "forum", "sport", "sportclass", "attendance", "meters", "water", "map"] as const;
 type XdyouDataset = (typeof DATASETS)[number];
 
 const CACHE_FILES = [
@@ -81,6 +82,8 @@ export async function queryXdyou(input: unknown, context?: ToolExecutionContext)
       return searchLibrary(request.query ?? "", request.limit, context?.signal);
     case "network":
       return queryCampusNetwork(context?.signal);
+    case "map":
+      return queryCampusMap([request.building, request.query].filter(Boolean).join(" "), request.limit, context?.signal);
     case "login":
       return openXdyouLogin(context?.signal);
     case "classrooms":

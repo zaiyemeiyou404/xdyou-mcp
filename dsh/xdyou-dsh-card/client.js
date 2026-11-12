@@ -8,7 +8,7 @@ window.__ModuleLoader__.load({
     var useEffect = React.useEffect;
     var useRef = React.useRef;
     var useState = React.useState;
-    var tools = ["aircon", "airconlive", "attendance", "card", "classrooms", "electricity", "exams", "experiments", "forum", "library", "loans", "login", "meters", "network", "schedule", "schoolnet", "scores", "sport", "sportclass", "status", "water"];
+    var tools = ["aircon", "airconlive", "attendance", "card", "classrooms", "electricity", "exams", "experiments", "forum", "library", "loans", "login", "map", "meters", "network", "schedule", "schoolnet", "scores", "sport", "sportclass", "status", "water"];
 
     function textOf(block) {
       if (!block || !Array.isArray(block.content)) return "";

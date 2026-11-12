@@ -46,6 +46,7 @@ export const xdyouManifest: PluginManifest = {
     capability("aircon", "Read cached XDYou 空调 electricity."),
     capability("library", "Search the Xidian library catalog. Use for 图书馆, 查书, 借书, ISBN, 书名."),
     capability("network", "Read the current Xidian campus-network session usage. Use for 校园网, 网费, 流量."),
+    capability("map", "Open the official Xidian campus GIS for 校园地图 and 西电地图. No login. The card embeds the 3D campus map and can search buildings and registered places. Public search does not find classroom numbers such as B-101, and indoor floor plans require login. Use classrooms for 空教室."),
     {
       ...capability("classrooms", "Query empty Xidian classrooms and their free periods. Use for 空教室, 空闲教室. Requires the XDYou login session. query or building is an optional building name such as B楼. Leave both empty to query empty classrooms. Do not pass 空教室 or 教学楼 as the building name."),
       timeoutMs: 180_000,

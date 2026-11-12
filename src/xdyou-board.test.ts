@@ -56,6 +56,21 @@ test("scores card keeps the summary and only unfinished courses", () => {
   assert.match(renderCampusBoardHtml(card), /55\.1/);
 });
 
+test("campus map card embeds the official GIS and listed places", () => {
+  const card = campusCardFromOutput("id", "map", {
+    ok: true,
+    url: "https://gis.xidian.edu.cn/",
+    view: "三维校园地图，可切换二维图和卫星图",
+    places: [{ name: "图书馆", campus: "南校区", kind: "建筑", address: "南校区 图书馆" }],
+    campuses: [{ name: "南校区", address: "西沣路兴隆段266号" }],
+  });
+  assert.equal(card.kind, "map");
+  assert.deepEqual(card.items.map((item) => item.title), ["图书馆"]);
+  assert.match(renderCampusBoardHtml(card), /src="https:\/\/gis\.xidian\.edu\.cn\/"/);
+  const blocked = renderCampusBoardHtml({ ...card, embedUrl: "https://evil.example/" });
+  assert.doesNotMatch(blocked, /src="https:\/\/evil\.example\//);
+});
+
 test("empty classroom cards list rooms and free periods", () => {
   const card = campusCardFromOutput("id", "classrooms", {
     ok: true,
